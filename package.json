@@ -1,0 +1,25 @@
+{
+  "name": "tinderufs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dist": "tsup src",
+    "start:dev": "tsx --env-file=.env src/server.ts",
+    "start:watch": "tsx  watch --env-file=.env  src/server.ts",
+    "start:dist": "npm run dist && node dist/src/index.js "
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/pg": "^8.11.13",
+    "tsx": "^4.19.3",
+    "typerscript": "^0.2.3"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.14.1"
+  }
+}
