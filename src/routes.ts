@@ -36,7 +36,7 @@ router.get("/", async (req: Request, res: Response) => {
     const id = req.params.id;
     
     try {
-      const result = await pool.query('SELECT * FROM usuarios WHERE id = $1', [id]);
+      const result = await pool.query<Usuario>('SELECT * FROM usuarios WHERE id = $1', [id]);
       
       console.log() 
       if(Object.is(result.rows[0],undefined)){
@@ -54,7 +54,7 @@ router.get("/", async (req: Request, res: Response) => {
     const id = req.params.id;
     
     try {
-      const result = await pool.query('DELETE  FROM usuarios  WHERE id = $1 RETURNING *', [id]);
+      const result = await pool.query<Usuario>('DELETE  FROM usuarios  WHERE id = $1 RETURNING *', [id]);
       
       console.log() 
       if(Object.is(result.rows[0],undefined)){
