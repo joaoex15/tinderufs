@@ -1,46 +1,51 @@
+import { Request, Response } from 'express';
 import { pool } from "../../Data/db.js";
 import { Usuario } from "../../models/usuario";
 
-
-export const EditF_user = async (req: any, res: any) => {
+export const EditF_user = async (req: Request, res: Response) => {
     const id = req.params.id;
-    const updates = req.body;
-    if (updates === undefined || updates === null) {
-        console.log("Updates é undefined ou null");
-        return res.status(400).json({ error: "Dados de atualização são obrigatórios" });
+    const newData = req.body;
+
+    // Validações (mais rigorosas que no PATCH)
+    if (!id) {
+         res.status(400).json({ error: "ID é obrigatório" });
     }
+
+    if (!newData || typeof newData !== 'object' || Array.isArray(newData)) {
+         res.status(400).json({ error: "Dados completos são obrigatórios" });
+    }
+
+    // Campos obrigatórios para PUT (exemplo)
+    const requiredFields = ['nome', 'email', 'senha'];
+    const missingFields = requiredFields.filter(field => !(field in newData));
     
-    if (typeof updates !== 'object' || Array.isArray(updates)) {
-        console.log("Updates não é um objeto válido");
-        return res.status(400).json({ error: "Dados devem ser um objeto JSON" });
+    if (missingFields.length > 0) {
+         res.status(400).json({ 
+            error: `Campos obrigatórios faltando: ${missingFields.join(', ')}`
+        });
     }
-    
-    if (!id || Object.keys(updates).length === 0||typeof updates===undefined) {
-       res.status(400).json({ error: " dados de atualização são obrigatórios." });
-    }
-    if(Object.keys(updates).includes("id")){
-      res.status(400).json({ error: "vocẽ NÃO pode mudar o id" });
-    }
+
     try {
-      const keys = Object.keys(updates);
-      const values = Object.values(updates);
-      
-      // Construir a cláusula SET, ex: "nome = $1, idade = $2"
-      const setClause = keys.map((key, index) => `${key} = $${index + 1}`).join(", ");
-  
-      // Adiciona o ID como último parâmetro da query
-      const result = await pool.query<Usuario>(
-        `UPDATE usuarios SET ${setClause} WHERE id = $${values.length + 1} RETURNING *`,
-        [...values, id]
-      );
-  
-      if (result.rows.length === 0) {
-         res.status(404).json({ error: "Usuário não encontrado." });
-      }
-  
-      res.json(result.rows[0]);
+        // PUT substitui TODOS os campos (diferente do PATCH)
+        newData.updated_at = new Date().toISOString(); // Adiciona o timestamp atual automaticamente
+
+        const result = await pool.query<Usuario>(
+            `UPDATE usuarios 
+             SET nome = $1, email = $2, senha = $3, updated_at = NOW() 
+             WHERE id = $4 
+             RETURNING id, nome, email, created_at ,updated_at `,
+            [newData.nome, newData.email, newData.senha, id]
+        );
+
+        if (result.rows.length === 0) {
+             res.status(404).json({ error: "Usuário não encontrado" });
+        }
+
+        res.json(result.rows[0]);
     } catch (error) {
-      console.error("Erro ao atualizar usuário:", error);
-      res.status(500).json({ error: "Erro interno no servidor." });
+        console.error("Erro ao atualizar usuário (PUT):", error);
+        
+       
+        res.status(500).json({ error: "Erro interno no servidor" });
     }
-  }
+};
