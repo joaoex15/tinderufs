@@ -7,7 +7,7 @@ export interface Pessoa {
     id: number;
     usuario_id: number;
     curso?: string;
-    idade?: number;
+    Data_de_nascimento?: Date;
     periodo?: string;
     genero?: string;
     sexualidade?: string;
