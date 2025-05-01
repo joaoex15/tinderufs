@@ -1,5 +1,5 @@
 import { Pessoa } from "./Pessoa";
-import { InteresseTag } from "./Tags";
+import { Tag } from "./Tags";
 
 export interface PessoaTag {
     id: number;
@@ -9,5 +9,5 @@ export interface PessoaTag {
     
     // Relacionamentos opcionais
     pessoa?: Pessoa;
-    tag?: InteresseTag;
+    tag?: Tag;
 }

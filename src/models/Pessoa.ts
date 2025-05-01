@@ -1,6 +1,6 @@
 import { Imagem } from "./Imagem";
 import { Match } from "./Match";
-import { InteresseTag } from "./Tags";
+import { Tag } from "./Tags";
 import { Usuario } from "./usuario";
 
 export interface Pessoa {
@@ -22,6 +22,6 @@ export interface Pessoa {
    
     usuario?: Usuario; // Dados de autenticação
     imagens?: Imagem[]; // Lista de imagens
-    tags?: InteresseTag[]; // Tags através de pessoa_tags
+    tags?: Tag[]; // Tags através de pessoa_tags
     matches?: Match[]; // Matches relacionados
 }
