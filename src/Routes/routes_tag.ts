@@ -1,5 +1,6 @@
 import express from "express";
 import { CreatTag } from "../services/Tags_list/Creat_tag";
+import { Delete_Tag } from "../services/Tags_list/Delete_tag";
 import { Get_TagById } from "../services/Tags_list/Get_TagById";
 import { Get_Tags } from "../services/Tags_list/Get_tags";
 import { EditP_Tag } from "../services/Tags_list/PatchTag";
@@ -15,6 +16,7 @@ routerTag.post("/",CreatTag)
 routerTag.get("/",Get_Tags)
 routerTag.get("/:id",Get_TagById)
 routerTag.patch("/:id",EditP_Tag)
+routerTag.delete("/:id",Delete_Tag)
 
 
 
