@@ -13,13 +13,18 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/express": "^5.0.1",
+    "@types/express": "^5.0.2",
     "@types/pg": "^8.11.13",
     "tsx": "^4.19.3",
     "typerscript": "^0.2.3"
   },
   "dependencies": {
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.15.21",
     "express": "^5.1.0",
+    "googleapis": "^149.0.0",
+    "mime-types": "^3.0.1",
+    "multer": "^2.0.0",
     "pg": "^8.14.1"
   }
 }
