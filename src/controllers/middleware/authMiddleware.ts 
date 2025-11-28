@@ -1,0 +1,45 @@
+import { Request, Response, NextFunction } from 'express';
+import admin from 'firebase-admin';
+
+// Configuração do Firebase Admin (você precisa configurar isso)
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user: any;
+    }
+  }
+}
+
+export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers.authorization?.split('Bearer ')[1];
+
+  if (!token) {
+    return res.status(401).json({ 
+      success: false,
+      error: 'Token de autenticação não fornecido',
+      timestamp: new Date()
+    });
+  }
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: 'Token inválido ou expirado',
+      timestamp: new Date()
+    });
+  }
+};

@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { pool } from "../../Data/db.js";
-import { Pessoa } from "../../models/Pessoa.js";
+import Pessoa from "../../models/schemas/Pessoa.js";
 
 export const EditP_pessoa = async (req: Request, res: Response) => {
     const id = req.params.id;
@@ -8,69 +7,53 @@ export const EditP_pessoa = async (req: Request, res: Response) => {
 
     // Validações iniciais
     if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
-         res.status(400).json({ error: "Dados de atualização inválidos" });
+        return res.status(400).json({ error: "Dados de atualização inválidos" });
     }
 
     if (!id || Object.keys(updates).length === 0) {
-         res.status(400).json({ error: "ID e dados de atualização são obrigatórios" });
+        return res.status(400).json({ error: "ID e dados de atualização são obrigatórios" });
     }
 
     // Campos protegidos que não podem ser alterados
-    const camposProtegidos = ['id', 'usuario_id', 'data_de_nascimento'];
+    const camposProtegidos = ['_id', 'email', 'createdAt', 'updatedAt'];
     const camposInvalidos = camposProtegidos.filter(field => field in updates);
     
     if (camposInvalidos.length > 0) {
-         res.status(400).json({ 
+        return res.status(400).json({ 
             error: `Não é permitido alterar: ${camposInvalidos.join(', ')}`
         });
     }
 
-    try {
-        const keys = Object.keys(updates);
-        const values = Object.values(updates);
-        
-        const setClause = keys.map((key, index) => `${key} = $${index + 1}`).join(", ");
+    // Validação de enums
+    if (updates.genero && !["masculino", "feminino", "não-binário", "outro"].includes(updates.genero)) {
+        return res.status(400).json({ error: "Gênero inválido" });
+    }
 
-        const result = await pool.query<Pessoa>(
-            `UPDATE pessoas 
-             SET ${setClause}, updated_at = NOW() 
-             WHERE usuario_id = $${keys.length + 1} 
-             RETURNING 
-                id,
-                usuario_id,
-                curso,
-                data_de_nascimento,
-                periodo,
-                genero,
-                sexualidade,
-                descricao,
-                ativo,
-                instagram,
-                whatsapp,
-                telegram,
-                created_at,
-                updated_at`,
-            [...values, id]
+    if (updates.sexualidade && !["hetero", "gay", "bi", "pan", "assexual", "outro"].includes(updates.sexualidade)) {
+        return res.status(400).json({ error: "Sexualidade inválida" });
+    }
+
+    try {
+        const pessoaAtualizada = await Pessoa.findByIdAndUpdate(
+            id,
+            { ...updates },
+            { new: true, runValidators: true }
         );
 
-        if (result.rows.length === 0) {
-             res.status(404).json({ error: "Pessoa não encontrada" });
+        if (!pessoaAtualizada) {
+            return res.status(404).json({ error: "Pessoa não encontrada" });
         }
 
-        // Formata a data para retornar sem o horário
-        const pessoaFormatada = {
-            ...result.rows[0],
-            data_de_nascimento: result.rows[0].data_de_nascimento 
-                ? result.rows[0].data_de_nascimento.toISOString().split('T')[0]
-                : null
-        };
-
-        res.json(pessoaFormatada);
+        res.json(pessoaAtualizada);
     } catch (error: any) {
         console.error("Erro ao atualizar pessoa:", error);
         
-        if (error.code === '23505') {
-             res.status(409).json({ error: "Violação de constraint única" });
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ error: error.message });
+        }
+        
+        if (error.code === 11000) {
+            return res.status(409).json({ error: "Email já existe" });
         }
         
         res.status(500).json({ error: "Erro interno no servidor" });

@@ -6,15 +6,15 @@
   "scripts": {
     "dist": "tsup src",
     "start:dev": "tsx --env-file=.env src/server.ts",
-    "start:watch": "tsx  watch --env-file=.env  src/server.ts",
-    "start:dist": "npm run dist && node dist/src/index.js "
+    "start:watch": "tsx watch --env-file=.env src/server.ts",
+    "start:dist": "npm run dist && node dist/src/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.2",
-    "@types/pg": "^8.11.13",
+    "@types/mongoose": "^5.11.97",
     "tsx": "^4.19.3",
     "typerscript": "^0.2.3"
   },
@@ -22,9 +22,11 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.15.21",
     "express": "^5.1.0",
+    "firebase": "^12.6.0",
+    "firebase-admin": "^13.6.0",
     "googleapis": "^149.0.0",
     "mime-types": "^3.0.1",
-    "multer": "^2.0.0",
-    "pg": "^8.14.1"
+    "mongoose": "^8.4.0",
+    "multer": "^2.0.0"
   }
 }

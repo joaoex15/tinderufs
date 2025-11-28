@@ -1,63 +1,76 @@
 import { Request, Response } from 'express';
-import { pool } from "../../Data/db.js";
-import { Pessoa } from "../../models/Pessoa.js";
+import Pessoa from "../../models/schemas/Pessoa.js";
 
 export const creatPessoa = async (req: Request, res: Response) => {
     const {
-        usuario_id,
+        nome,
         curso,
-        data_de_nascimento,
+        data_nasc,
         periodo,
+        email,
         genero,
         sexualidade,
         descricao,
         ativo = true,
         instagram,
         whatsapp,
-        telegram
+        telegram,
+        tags = []
     } = req.body;
     
     try {
-        // Validação do formato da data
-        if (data_de_nascimento && !/^\d{4}-\d{2}-\d{2}$/.test(data_de_nascimento)) {
-             res.status(400).json({ error: "Formato de data inválido. Use YYYY-MM-DD" });
+        // Validações básicas
+        if (!nome || !email || !data_nasc || !genero || !sexualidade) {
+            return res.status(400).json({ 
+                error: "Campos obrigatórios: nome, email, data_nasc, genero, sexualidade" 
+            });
         }
 
-        const result = await pool.query<Pessoa & { data_de_nascimento: Date }>(
-            `INSERT INTO pessoas (
-                usuario_id, curso, data_de_nascimento, periodo, genero,
-                sexualidade, descricao, ativo, instagram,
-                whatsapp, telegram, created_at, updated_at
-             ) 
-             VALUES ($1, $2, $3::DATE, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()) 
-             RETURNING *`,
-            [
-                usuario_id,
-                curso,
-                data_de_nascimento,
-                periodo,
-                genero,
-                sexualidade,
-                descricao,
-                ativo,
-                instagram,
-                whatsapp,
-                telegram
-            ]
-        );
+        // Validação de data
+        const dataNascimento = new Date(data_nasc);
+        if (isNaN(dataNascimento.getTime())) {
+            return res.status(400).json({ error: "Data de nascimento inválida" });
+        }
 
-        // Formatar a resposta para retornar apenas a data (sem horário)
-        const pessoaFormatada = {
-            ...result.rows[0],
-            data_de_nascimento: result.rows[0].data_de_nascimento.toISOString().split('T')[0]
-        };
+        // Validação de enums
+        const generosValidos = ["masculino", "feminino", "não-binário", "outro"];
+        const sexualidadesValidas = ["hetero", "gay", "bi", "pan", "assexual", "outro"];
 
-        res.status(201).json(pessoaFormatada);
+        if (!generosValidos.includes(genero)) {
+            return res.status(400).json({ error: "Gênero inválido" });
+        }
+
+        if (!sexualidadesValidas.includes(sexualidade)) {
+            return res.status(400).json({ error: "Sexualidade inválida" });
+        }
+
+        const novaPessoa = new Pessoa({
+            nome,
+            curso,
+            data_nasc: dataNascimento,
+            periodo,
+            email: email.toLowerCase(),
+            genero,
+            sexualidade,
+            descricao: descricao || "",
+            ativo,
+            instagram,
+            whatsapp,
+            telegram,
+            tags
+        });
+
+        const pessoaSalva = await novaPessoa.save();
+        res.status(201).json(pessoaSalva);
     } catch (error: any) {
         console.error("Erro ao cadastrar pessoa:", error);
         
-        if (error.code === '23503') {
-             res.status(400).json({ error: "Usuário não encontrado (ID inválido)" });
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ error: error.message });
+        }
+        
+        if (error.code === 11000) {
+            return res.status(409).json({ error: "Email já cadastrado" });
         }
         
         res.status(500).json({ error: "Erro interno no servidor" });
