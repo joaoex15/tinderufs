@@ -1,4 +1,5 @@
-import { Document, Types } from "mongoose";
+// models/consultas/IPerfilCompleto.ts
+import { Types } from "mongoose";
 
 export interface IPerfilCompleto {
   // Dados da Pessoa
@@ -16,21 +17,29 @@ export interface IPerfilCompleto {
   whatsapp?: string;
   telegram?: string;
   tags: Array<{ tag_id?: Types.ObjectId; nome: string }>;
+  usuario_id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   
   // Dados agregados
-  imagens_principais: Array<{
+  imagens: Array<{
     _id: Types.ObjectId;
     pessoa_id: Types.ObjectId;
     caminho_arquivo: string;
+    ordem: number;
+    principal: boolean;
+    aprovada: boolean;
     createdAt: Date;
   }>;
   
-  tags_principais: Array<{
+  tags_detalhadas: Array<{
     _id: Types.ObjectId;
     nome: string;
+    descricao: string;
+    categoria: string;
   }>;
   
   total_matches: number;
+  matches_ativos: number;
+  percentual_match: number; // Compatibilidade baseada em tags
 }

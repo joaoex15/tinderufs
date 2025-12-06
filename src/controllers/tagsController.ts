@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Tag from "../models/schemas/Tags.js";
+import Tag from "../models/schemas/Tag.js";
 import { AppError } from "./middleware/errorHandler.js";
 
 const isDuplicateError = (error: any): error is { code: number } => {
